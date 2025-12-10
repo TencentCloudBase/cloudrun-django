@@ -52,10 +52,6 @@ django-admin startproject cloudrun-django
 
 打开浏览器并查看`http://127.0.0.1:8000`, 您将看到 Django 欢迎页面。
 
-### 源码
-
-[cloudrun-django](https://github.com/TencentCloudBase/tcbr-templates/tree/main/cloudrun-django)
-
 ### 部署到云托管
 
 1、### 配置依赖项
