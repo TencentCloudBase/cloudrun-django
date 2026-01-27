@@ -1,5 +1,6 @@
-asgiref==3.11.0
-Django==5.2.10
+# Django 4.2 LTS - 兼容 SQLite 3.26+
+Django==4.2.16
+asgiref==3.7.2
 psycopg2-binary==2.9.11
-sqlparse==0.5.5
+sqlparse==0.4.4
 typing_extensions==4.15.0

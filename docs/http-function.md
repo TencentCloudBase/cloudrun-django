@@ -154,18 +154,7 @@ cloudrun-django/
 9. **自动安装依赖**：开启此选项
 10. 点击「创建」按钮等待部署完成
 
-### 通过 CLI 部署
-
-```bash
-# 安装 CloudBase CLI
-npm install -g @cloudbase/cli
-
-# 登录
-tcb login
-
-# 部署云函数
-tcb functions:deploy cloudrun-django-app --dir ./
-```
+### 通过 CLI 部署(敬请期待)
 
 ### 打包部署
 
@@ -213,6 +202,36 @@ curl -X POST https://your-function-url/api/users/create/ \
 ```
 
 ## 常见问题
+
+### Q: 部署后云函数无反应怎么办？
+
+这是最常见的问题，请按以下步骤排查：
+
+#### 🔍 快速诊断
+1. **查看函数日志**：CloudBase 控制台 → 云函数 → 函数列表 → 点击函数名 → 日志标签页
+2. **检查启动脚本权限**：确保 `scf_bootstrap` 有执行权限
+3. **验证文件结构**：确保所有必要文件都在部署包中
+
+#### 🛠️ 详细解决方案
+**完整故障排除指南**：[SCF 云函数故障排除指南](./scf-troubleshooting.md)
+
+**常见错误及解决方案**：
+
+| 错误类型 | 错误信息 | 解决方案 |
+|---------|---------|---------|
+| 权限问题 | `Permission denied` | `chmod +x scf_bootstrap` |
+| 模块缺失 | `ModuleNotFoundError` | 检查 PYTHONPATH 和依赖安装 |
+| 端口占用 | `Address already in use` | 确保使用 9000 端口 |
+| 超时问题 | `Task timed out` | 增加函数超时时间到 60 秒 |
+
+#### 🔧 调试模式
+使用调试启动脚本：
+```bash
+# 将 scf_bootstrap_debug 重命名为 scf_bootstrap
+cp scf_bootstrap_debug scf_bootstrap
+chmod +x scf_bootstrap
+# 重新部署查看详细日志
+```
 
 ### Q: 为什么 HTTP 云函数必须使用 9000 端口？
 A: CloudBase HTTP 云函数要求应用监听 9000 端口，这是平台的标准配置。通过在 `scf_bootstrap` 中设置 `PORT=9000` 环境变量来控制端口，本地开发时默认使用 8080 端口。应用代码通过 `os.environ.get('PORT', 8080)` 实现端口的动态配置。

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# 调试模式启动脚本
+echo "=== SCF Bootstrap Debug Mode ==="
+echo "Current directory: $(pwd)"
+echo "Python version: $(/var/lang/python310/bin/python3.10 --version)"
+echo "Available files:"
+ls -la /var/user/
+
+# 设置环境变量
+export PORT=9000
+export PYTHONPATH="/var/user:/var/user/env/lib/python3.10/site-packages:$PYTHONPATH"
+export DJANGO_SETTINGS_MODULE=cloudrun.settings
+
+echo "Environment variables:"
+echo "PORT: $PORT"
+echo "PYTHONPATH: $PYTHONPATH"
+
+# 检查 Python 包
+echo "Checking Django installation:"
+/var/lang/python310/bin/python3.10 -c "import django; print('Django version:', django.get_version())"
+
+# 检查项目文件
+echo "Checking manage.py:"
+ls -la /var/user/manage.py
+
+# 进入工作目录
+cd /var/user
+
+# 尝试启动 Django
+echo "Starting Django application..."
+/var/lang/python310/bin/python3.10 manage.py check --deploy
+/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000 --noreload --verbosity=2

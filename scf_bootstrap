@@ -1,4 +1,22 @@
 #!/bin/bash
+
+# 设置环境变量
 export PORT=9000
-export PYTHONPATH="./env/lib/python3.10/site-packages:$PYTHONPATH"
-/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000
+export PYTHONPATH="/var/user:/var/user/env/lib/python3.10/site-packages:$PYTHONPATH"
+export DJANGO_SETTINGS_MODULE=cloudrun.settings_scf
+
+# 进入工作目录
+cd /var/user
+
+# 检查 Django 版本和 SQLite 兼容性
+echo "Checking Django and SQLite compatibility..."
+/var/lang/python310/bin/python3.10 -c "
+import django
+import sqlite3
+print(f'Django version: {django.get_version()}')
+print(f'SQLite version: {sqlite3.sqlite_version}')
+"
+
+# 启动 Django 应用
+echo "Starting Django application with SCF settings..."
+/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000 --noreload
