@@ -1,22 +1,14 @@
 #!/bin/bash
 
-# 设置环境变量
-export PORT=9000
-export PYTHONPATH="/var/user:/var/user/env/lib/python3.10/site-packages:$PYTHONPATH"
-export DJANGO_SETTINGS_MODULE=cloudrun.settings_scf
+#!/bin/bash
+# 设置 Python 依赖加载路径，我们默认设置在 third_party 目录
+export PYTHONPATH="./third_party:$PYTHONPATH"
 
-# 进入工作目录
-cd /var/user
+# 运行数据库迁移
+/var/lang/python310/bin/python3.10 manage.py migrate --noinput
 
-# 检查 Django 版本和 SQLite 兼容性
-echo "Checking Django and SQLite compatibility..."
-/var/lang/python310/bin/python3.10 -c "
-import django
-import sqlite3
-print(f'Django version: {django.get_version()}')
-print(f'SQLite version: {sqlite3.sqlite_version}')
-"
+# 收集静态文件
+/var/lang/python310/bin/python3.10 manage.py collectstatic --noinput
 
 # 启动 Django 应用
-echo "Starting Django application with SCF settings..."
-/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000 --noreload
+/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000
