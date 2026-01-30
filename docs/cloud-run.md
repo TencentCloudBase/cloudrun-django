@@ -6,7 +6,6 @@
 
 ## 📋 目录导航
 
-- [部署特性](#部署特性)
 - [准备部署文件](#准备部署文件)
 - [项目结构](#项目结构)
 - [部署步骤](#部署步骤)
@@ -16,25 +15,6 @@
 - [高级配置](#高级配置)
 
 ---
-
-## 部署特性
-
-云托管适合以下场景：
-
-- **企业级应用**：复杂的 Web 应用和管理系统
-- **高并发**：需要处理大量并发请求
-- **自定义环境**：需要特定的运行时环境
-- **微服务架构**：容器化部署和管理
-
-### 技术特点
-
-| 特性 | 说明 |
-|------|------|
-| **计费方式** | 按资源使用量（CPU/内存） |
-| **启动方式** | 持续运行 |
-| **端口配置** | 可自定义端口（默认 8080） |
-| **扩缩容** | 支持自动扩缩容配置 |
-| **Python 环境** | 完全自定义 Python 环境 |
 
 ## 准备部署文件
 
@@ -234,48 +214,6 @@ tcb run init
 
 # 部署云托管服务
 tcb run deploy --port 8080
-```
-
-### 配置文件部署
-
-创建 `cloudbaserc.json` 配置文件：
-
-```json
-{
-  "envId": "your-env-id",
-  "framework": {
-    "name": "django",
-    "plugins": {
-      "run": {
-        "name": "@cloudbase/framework-plugin-run",
-        "options": {
-          "serviceName": "cloudrun-django-service",
-          "servicePath": "/",
-          "localPath": "./",
-          "dockerfile": "./Dockerfile",
-          "buildDir": "./",
-          "cpu": 0.25,
-          "mem": 0.5,
-          "minNum": 1,
-          "maxNum": 10,
-          "policyType": "cpu",
-          "policyThreshold": 60,
-          "containerPort": 8080,
-          "envVariables": {
-            "DJANGO_SETTINGS_MODULE": "cloudrun.settings",
-            "DEBUG": "False"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-然后执行部署：
-
-```bash
-tcb framework deploy
 ```
 
 ### 模板部署（快速开始）

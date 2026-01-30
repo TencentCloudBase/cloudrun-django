@@ -20,7 +20,7 @@
 mkdir cloudrun-django && cd cloudrun-django
 python -m venv env
 source env/bin/activate  # Windows: env\Scripts\activate
-pip install Django==5.2.10 psycopg2-binary==2.9.11
+pip install Django==4.2.16 psycopg2-binary==2.9.11
 django-admin startproject cloudrun .
 python manage.py startapp api
 ```
@@ -52,7 +52,7 @@ cloudrun-django/
 │   └── urls.py            # API URL 配置
 ├── requirements.txt         # Python 依赖文件
 ├── .gitignore              # Git 忽略文件
-├── env/                   # 虚拟环境（本地开发用）
+├── third_party             # Python 依赖安装目录，HTTP 云函数必须将依赖一同打包，并不会自己下载依赖
 ├── scf_bootstrap           # HTTP 云函数启动脚本
 ├── Dockerfile              # 云托管容器配置
 └── .dockerignore           # Docker 忽略文件
@@ -87,7 +87,7 @@ cloudrun-django/
 **快速部署步骤：**
 1. 创建 `scf_bootstrap` 启动脚本
 2. 配置外部数据库连接
-3. 包含虚拟环境目录
+3. 安装依赖 ```pip3 install -r requirements.txt -t third_party```, 安装包必须包含依赖
 4. 通过 CloudBase 控制台上传部署
 
 [📖 查看详细的 HTTP 云函数部署指南](./docs/http-function.md)
@@ -156,46 +156,6 @@ curl -X POST https://your-app-url/api/users/create/ \
 - **企业级应用**：选择云托管
 - **成本敏感**：选择 HTTP 云函数
 - **需要持续运行**：选择云托管
-
-## 🛠️ 开发工具
-
-### 推荐的开发依赖
-
-```bash
-# 数据库和工具
-pip install psycopg2-binary dj-database-url python-dotenv
-
-# 静态文件处理
-pip install whitenoise
-
-# 生产服务器
-pip install gunicorn
-
-# API 开发
-pip install djangorestframework
-```
-
-### 环境变量配置
-
-创建 `.env` 文件：
-
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key
-DB_HOST=your-database-host
-DB_NAME=cloudrun_django
-DB_USER=your-username
-DB_PASSWORD=your-password
-```
-
-## 📖 进阶功能
-
-- **数据库集成**：支持 PostgreSQL、MySQL 等
-- **身份验证**：JWT 认证实现
-- **API 文档**：Django REST Framework 文档生成
-- **缓存策略**：Redis 缓存集成
-- **异步支持**：Django 4.1+ 异步视图
-- **监控告警**：性能监控和日志分析
 
 ## 🔗 相关链接
 

@@ -472,7 +472,7 @@ DATABASES = {
 
 ```bash
 # 安装基础依赖（与项目 requirements.txt 一致）
-pip install Django==5.2.10
+pip install Django==4.2.16
 pip install psycopg2-binary==2.9.11
 
 # 根据部署方式选择数据库驱动

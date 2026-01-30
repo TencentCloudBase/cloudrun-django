@@ -6,35 +6,14 @@
 
 ## 📋 目录导航
 
-- [部署特性](#部署特性)
 - [准备部署文件](#准备部署文件)
 - [项目结构](#项目结构)
 - [部署步骤](#部署步骤)
 - [访问应用](#访问应用)
 - [常见问题](#常见问题)
-- [最佳实践](#最佳实践)
 - [性能优化](#性能优化)
 
 ---
-
-## 部署特性
-
-HTTP 云函数适合以下场景：
-
-- **轻量级应用**：API 服务、微服务
-- **间歇性访问**：不需要持续运行的应用
-- **成本敏感**：按请求次数和执行时间计费
-- **快速部署**：无需容器化配置
-
-### 技术特点
-
-| 特性 | 说明 |
-|------|------|
-| **计费方式** | 按请求次数和执行时间 |
-| **启动方式** | 冷启动，按需启动 |
-| **端口要求** | 固定 9000 端口 |
-| **扩缩容** | 自动按请求扩缩 |
-| **Python 环境** | 预配置 Python 运行时 |
 
 ## 准备部署文件
 
@@ -103,10 +82,12 @@ export SECRET_KEY=your-secret-key
 确保 `requirements.txt` 包含必要依赖：
 
 ```txt
-Django>=4.2.0
-psycopg2-binary>=2.9.0
-python-dotenv>=1.0.0
-whitenoise>=6.5.0
+# Django 4.2 LTS - 兼容 SQLite 3.26+
+Django==4.2.16
+asgiref==3.7.2
+psycopg2-binary==2.9.11
+sqlparse==0.4.4
+typing_extensions==4.15.0
 ```
 
 ## 项目结构
@@ -125,11 +106,8 @@ cloudrun-django/
 │   ├── views.py
 │   └── urls.py
 ├── requirements.txt         # Python 依赖
-├── scf_bootstrap           # 🔑 云函数启动脚本
-└── env/                   # 🔑 虚拟环境（部署时需要包含）
-    └── lib/
-        └── python3.10/
-            └── site-packages/  # Python 依赖包
+├── scf_bootstrap            # 🔑 云函数启动脚本
+└── third_party/                     # Python 依赖包
 ```
 
 > 💡 **说明**：
@@ -137,7 +115,7 @@ cloudrun-django/
 > - 设置 `PORT=9000` 环境变量确保应用监听云函数要求的端口
 > - 设置 `PYTHONPATH` 环境变量确保应用能找到依赖包
 > - 使用云函数运行时环境的 Python 解释器启动应用
-> - **重要**：HTTP 云函数部署时需要包含 `env` 目录及其依赖包
+> - **重要**：HTTP 云函数部署时需要包含 `third_party` 目录及其依赖包
 
 ## 部署步骤
 
@@ -162,7 +140,7 @@ cloudrun-django/
 
 ```bash
 # 创建部署包（包含 env 目录）
-zip -r cloudrun-django-app.zip . -x ".git/*" "*.log" "Dockerfile" ".dockerignore" "__pycache__/*"
+zip -r cloudrun-django-app.zip . -x ".git/*" "*.log" "Dockerfile" ".dockerignore" "__pycache__/*" "env/*"
 ```
 
 ## 访问应用
@@ -289,104 +267,7 @@ A: 在 CloudBase 控制台的云函数页面，点击函数名称进入详情页
 ### Q: 云函数支持哪些 Python 版本？
 A: CloudBase 支持 Python 3.7、3.8、3.9、3.10、3.11 等版本，建议使用最新的稳定版本。
 
-## 最佳实践
-
-### 1. 环境变量管理
-
-使用 python-dotenv 管理环境变量：
-
-```python
-# settings.py
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me')
-    DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
-    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
-    DATABASE_URL = os.getenv('DATABASE_URL')
-```
-
-### 2. 优化启动脚本
-
-增强 `scf_bootstrap` 脚本：
-
-```bash
-#!/bin/bash
-export PORT=9000
-export PYTHONPATH="./env/lib/python3.10/site-packages:$PYTHONPATH"
-export DJANGO_SETTINGS_MODULE=cloudrun.settings
-
-# 检查依赖
-if [ ! -d "env" ]; then
-    echo "Virtual environment not found"
-    exit 1
-fi
-
-# 启动应用
-/var/lang/python310/bin/python3.10 manage.py runserver 0.0.0.0:9000
-```
-
-### 3. 数据库连接优化
-
-```python
-# settings.py
-import dj_database_url
-
-# 使用 dj_database_url 简化数据库配置
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://user:password@localhost:5432/dbname',
-        conn_max_age=600
-    )
-}
-```
-
-### 4. 静态文件配置
-
-```python
-# settings.py
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# 使用 WhiteNoise 处理静态文件
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    # ... 其他中间件
-]
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-```
-
-### 5. 日志配置
-
-```python
-# settings.py
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
-        },
-    },
-}
-```
-
-### 6. 部署前检查清单
+### 5. 部署前检查清单
 
 - [ ] `scf_bootstrap` 文件存在且有执行权限
 - [ ] 端口配置为 9000
